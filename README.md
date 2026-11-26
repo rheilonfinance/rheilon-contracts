@@ -42,6 +42,23 @@ EVM version cancun. Every crew is a `RheilonAccount` created by the factory.
 Supported Stock Tokens: NVDA, AAPL, TSLA, MSFT, AMZN, GOOGL, META, QQQ. Token, Chainlink feed and Uniswap pool for
 each are in `deployments/robinhood-mainnet.json`.
 
+## $HEIL
+
+<img src="docs/assets/heil.png" alt="$HEIL" width="96" align="left">
+
+Rheilon's community token, launched on [Pons](https://ponsfamily.com). It was deployed from the same wallet that
+deployed every contract above. This is the only $HEIL, anything else using the name isn't us.
+
+<br clear="left">
+
+| Token | Address |
+| --- | --- |
+| $HEIL | [`0xE1a8Ea885047572986f80019B1196d6088DC555e`](https://robinhoodchain.blockscout.com/token/0xE1a8Ea885047572986f80019B1196d6088DC555e) |
+
+The image above is the same file as the token image on Pons (`ipfs://bafkreih4ztbmbdilrhfsqv76keffz7qf3qngrnraxwf7golxh2a5s5muyq`,
+stored in the token contract). $HEIL is not a share of any crew and has no claim on fees, profits or votes, and the
+contracts in this repository don't use it. Live price and curve progress are on [rheilon.com/heil](https://rheilon.com/heil).
+
 ## How a crew works
 
 - 2 to 10 seats. Members add USDG and receive shares at the account's current value.
