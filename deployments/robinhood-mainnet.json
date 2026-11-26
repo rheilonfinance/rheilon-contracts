@@ -78,6 +78,8 @@
     "treasury": "0xD8939e5c33904aAF7098881F5e052616Ce40b086",
     "compiler": "0.8.24+commit.e11b9ed9, optimizer 200 runs, evmVersion cancun, source remix/RheilonLaunch.flat.sol",
     "checkedOnChain": "2026-11-19: launch links, treasury, fees 20/20 bps, cap $25,000, router, 8 feeds and pool fees all match",
-    "verified": "2026-11-19: all five contracts verified, exact match, on Blockscout and Sourcify"
+    "verified": "2026-11-19: all five contracts verified, exact match, on Blockscout and Sourcify",
+    "deployer": "0x64438e23582a85e5f764cdd28aec4099bc7c7604",
+    "deployTx": "0xd3cd6ad68548aaf6752ec7801c20fa7a75b5177a20a6cd1862611644b1f04832"
   }
 }

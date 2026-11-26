@@ -33,6 +33,7 @@ The contracts have no owner, no admin keys, no pause and no upgrade path.
 | RheilonRegistry | [`0x91D1244361560Ca7E1BFFA60FE29981ED2371A63`](https://robinhoodchain.blockscout.com/address/0x91D1244361560Ca7E1BFFA60FE29981ED2371A63) |
 | ChainlinkOracle | [`0xc3573a8f0235E12C40667f9d3cCd7251591618a3`](https://robinhoodchain.blockscout.com/address/0xc3573a8f0235E12C40667f9d3cCd7251591618a3) |
 | UniswapV3Adapter | [`0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181`](https://robinhoodchain.blockscout.com/address/0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181) |
+| Deployer (deployed every contract above) | [`0x64438E23582A85e5f764CdD28AEC4099bC7C7604`](https://robinhoodchain.blockscout.com/address/0x64438E23582A85e5f764CdD28AEC4099bC7C7604) |
 | Treasury (receives fees) | [`0xD8939e5c33904aAF7098881F5e052616Ce40b086`](https://robinhoodchain.blockscout.com/address/0xD8939e5c33904aAF7098881F5e052616Ce40b086) |
 
 All five contracts are verified (exact match) on Blockscout and Sourcify. Compiler: solc 0.8.24, optimizer 200 runs,
