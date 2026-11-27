@@ -112,11 +112,15 @@ describe("UniswapV3Adapter", () => {
     await acct.connect(c.ana).propose(0, data, "first buy");
     await acct.connect(c.ben).approve(0);
     await acct.connect(c.cai).approve(0);
+    // the pool is 7% worse than Chainlink ($200 vs $186.40): the oracle bound refuses it, whatever minOut says
+    await expect(acct.connect(c.ana).execute(0)).to.be.revertedWithCustomError(acct, "OracleBound");
+    await c.router.setRate(c.usdg, c.nvda, ONE(1) * 10n ** 12n / 188n); // ~0.9% off the feed: fine
     await acct.connect(c.ana).execute(0);
     expect(await c.usdg.balanceOf(c.treasury)).to.equal(USD(2)); // fee lands in the treasury in the same transaction
-    expect(await c.nvda.balanceOf(acct)).to.equal(ONE(4.99));
+    const got = await c.nvda.balanceOf(acct);
+    expect(got).to.be.closeTo(ONE(998 / 188), ONE(0.0001));
     // value now priced by the Chainlink feed ($186.40), not the pool
-    expect(await acct.accountValue()).to.equal(USD(2000) + (ONE(4.99) * P8(186.4) * 10n ** 6n) / 10n ** 26n);
+    expect(await acct.accountValue()).to.equal(USD(2000) + (got * P8(186.4) * 10n ** 6n) / 10n ** 26n);
 
     // stale price blocks new money in, but never blocks leaving
     await time.increase(5 * DAY);

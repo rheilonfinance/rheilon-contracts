@@ -2,7 +2,8 @@
 
 Smart contracts for [Rheilon](https://rheilon.com): a shared stock account for a crew of 2 to 10 people on
 Robinhood Chain (chain ID 4663). Members pool USDG, pitch trades in Robinhood Stock Tokens, vote with their own
-wallets, and can leave with their share at any time.
+wallets, and can leave with their share whenever they want (money added in the last hour stays in until the hour is
+up).
 
 The contracts have no owner, no admin keys, no pause and no upgrade path.
 
@@ -12,32 +13,51 @@ The contracts have no owner, no admin keys, no pause and no upgrade path.
 | --- | --- |
 | `contracts/RheilonAccount.sol` | One crew's account: deposits, joins, votes, trades, withdrawals |
 | `contracts/RheilonFactory.sol` | Creates crews and lists them |
+| `contracts/RheilonAccountDeployer.sol` | Holds the crew code for the factory (v2: the code is too big to sit in the factory itself) |
 | `contracts/RheilonRegistry.sol` | Fixed settings crews point at: USDG, supported stocks, oracle, swap route, fees, beta cap |
 | `contracts/oracles/ChainlinkOracle.sol` | Values Stock Tokens in USDG with Chainlink feeds |
 | `contracts/adapters/UniswapV3Adapter.sol` | Swaps through fixed Uniswap v3 pools |
-| `contracts/RheilonLaunch.sol` | One-shot deployer for all of the above on Robinhood Chain |
+| `contracts/RheilonLaunch.sol` | One-shot deployer for all of the above on a fresh chain (used for v1 and the fork tests; v2 reused v1's registry, oracle and adapter) |
 | `contracts/mocks/` | Test-only contracts (never deployed to mainnet) |
 | `test/` | Unit tests, integration tests and fuzz tests |
 | `test-fork/` | Tests against a local copy of Robinhood Chain mainnet |
-| `scripts/check-deployed.js` | Compares the code on Robinhood Chain with this repository |
+| `scripts/check-deployed.js` | Compares the code on Robinhood Chain with this repository, v1 and v2 |
 | `deployments/robinhood-mainnet.json` | Deployed addresses and every external address used (tokens, feeds, pools) |
 | `verification/` | The flattened sources and constructor arguments used to verify on the explorer |
-| `docs/` | How a crew works, and the security review |
+| `docs/` | How a crew works, the HEY Research Lab review and the v1 self-review |
 
 ## Deployed
+
+Contracts are immutable, so the fixed version is a second factory. New crews are created through v2. Crews created
+by v1 keep working and every member can withdraw or leave, but rheilon.com no longer offers joins into them.
+
+**v2** (current, [security review by HEY Research Lab](docs/review-v2.md), final commit not retested)
+
+| Contract | Address |
+| --- | --- |
+| RheilonFactory | [`0xAfb187494ebb15aD8CC51A1e350747AB8021Fa41`](https://robinhoodchain.blockscout.com/address/0xAfb187494ebb15aD8CC51A1e350747AB8021Fa41) |
+| RheilonAccountDeployer (created by the factory, answers only to it) | [`0xD392e27AB8C48aAeeb052F4d50740ccF2701b6BE`](https://robinhoodchain.blockscout.com/address/0xD392e27AB8C48aAeeb052F4d50740ccF2701b6BE) |
+
+**Shared by v1 and v2** (unchanged)
+
+| Contract | Address |
+| --- | --- |
+| RheilonRegistry | [`0x91D1244361560Ca7E1BFFA60FE29981ED2371A63`](https://robinhoodchain.blockscout.com/address/0x91D1244361560Ca7E1BFFA60FE29981ED2371A63) |
+| ChainlinkOracle | [`0xc3573a8f0235E12C40667f9d3cCd7251591618a3`](https://robinhoodchain.blockscout.com/address/0xc3573a8f0235E12C40667f9d3cCd7251591618a3) |
+| UniswapV3Adapter | [`0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181`](https://robinhoodchain.blockscout.com/address/0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181) |
+| Treasury (receives fees) | [`0xD8939e5c33904aAF7098881F5e052616Ce40b086`](https://robinhoodchain.blockscout.com/address/0xD8939e5c33904aAF7098881F5e052616Ce40b086) |
+
+**v1** (source: [`verification/RheilonLaunch.flat.sol`](verification/RheilonLaunch.flat.sol), or tag `v1`)
 
 | Contract | Address |
 | --- | --- |
 | RheilonLaunch | [`0xd8f941e1B65BEDb7f7a3bCCdE26e244347FcFC34`](https://robinhoodchain.blockscout.com/address/0xd8f941e1B65BEDb7f7a3bCCdE26e244347FcFC34) |
 | RheilonFactory | [`0x62306E1C55AE3CA8D6CE874c275eeB3C16c349A8`](https://robinhoodchain.blockscout.com/address/0x62306E1C55AE3CA8D6CE874c275eeB3C16c349A8) |
-| RheilonRegistry | [`0x91D1244361560Ca7E1BFFA60FE29981ED2371A63`](https://robinhoodchain.blockscout.com/address/0x91D1244361560Ca7E1BFFA60FE29981ED2371A63) |
-| ChainlinkOracle | [`0xc3573a8f0235E12C40667f9d3cCd7251591618a3`](https://robinhoodchain.blockscout.com/address/0xc3573a8f0235E12C40667f9d3cCd7251591618a3) |
-| UniswapV3Adapter | [`0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181`](https://robinhoodchain.blockscout.com/address/0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181) |
-| Deployer (deployed every contract above) | [`0x64438E23582A85e5f764CdD28AEC4099bC7C7604`](https://robinhoodchain.blockscout.com/address/0x64438E23582A85e5f764CdD28AEC4099bC7C7604) |
-| Treasury (receives fees) | [`0xD8939e5c33904aAF7098881F5e052616Ce40b086`](https://robinhoodchain.blockscout.com/address/0xD8939e5c33904aAF7098881F5e052616Ce40b086) |
 
-All five contracts are verified (exact match) on Blockscout and Sourcify. Compiler: solc 0.8.24, optimizer 200 runs,
-EVM version cancun. Every crew is a `RheilonAccount` created by the factory.
+Everything above was deployed from [`0x64438E23582A85e5f764CdD28AEC4099bC7C7604`](https://robinhoodchain.blockscout.com/address/0x64438E23582A85e5f764CdD28AEC4099bC7C7604).
+Compiler for both versions: solc 0.8.24, optimizer 200 runs, EVM version cancun. The v1 contracts are verified
+(exact match) on Blockscout and Sourcify; the v2 factory and deployer are verified too (see
+[`verification/`](verification/README.md)). Every crew is a `RheilonAccount` created by a factory.
 
 Supported Stock Tokens: NVDA, AAPL, TSLA, MSFT, AMZN, GOOGL, META, QQQ. Token, Chainlink feed and Uniswap pool for
 each are in `deployments/robinhood-mainnet.json`.
@@ -59,14 +79,17 @@ The image above is the same file as the token image on Pons (`ipfs://bafkreih4zt
 stored in the token contract). $HEIL is not a share of any crew and has no claim on fees, profits or votes, and the
 contracts in this repository don't use it. Live price and curve progress are on [rheilon.com/heil](https://rheilon.com/heil).
 
-## How a crew works
+## How a crew works (v2)
 
 - 2 to 10 seats. Members add USDG and receive shares at the account's current value.
-- Private crews add members by vote. Open crews let anyone join while seats are free; newcomers vote after 3 days
-  and open crews vote by shares.
-- Trades are proposals. They pass at two thirds by default; unless everyone signed, a 12-hour cool-off follows so
-  anyone who disagrees can leave first. Each trade carries the minimum the crew must receive.
-- Withdrawing and leaving need no vote and no price: you get your share of every asset the crew holds.
+- Private crews add members by vote. Open crews let anyone join while seats are free; a join agrees to the pitches
+  already passed, newcomers vote after 3 days, and open crews vote by shares. An open crew can vote to close itself
+  to joins.
+- Trades are proposals. They pass at two thirds by default; unless every member signed, a 12-hour cool-off follows so
+  anyone who disagrees can leave first. If a signer pulls out, or the voters change, the pitch has to pass again.
+- Each trade carries the minimum the crew must receive, and can't come back more than 3% under the Chainlink price.
+- Withdrawing and leaving need no vote and no price: you get your share of every asset the crew holds. Money added in
+  the last hour stays in until the hour is up.
 
 More detail in [`docs/how-it-works.md`](docs/how-it-works.md).
 
@@ -97,8 +120,8 @@ npm run test:fork    # forks Robinhood Chain mainnet in memory and runs real tra
 npm run check
 ```
 
-Compiles this repository and compares it with the bytecode on Robinhood Chain for all five contracts and every
-crew the factory has created. Only immutables (values set at deployment) and metadata hashes are ignored. Set
+Compiles this repository and compares it with the bytecode on Robinhood Chain: v2 and the shared contracts against
+`contracts/`, v1 against the flattened source it was deployed from, and every crew both factories have created. Only immutables (values set at deployment) and metadata hashes are ignored. Set
 `RH_RPC` to use your own RPC.
 
 ## Security
@@ -107,8 +130,10 @@ crew the factory has created. Only immutables (values set at deployment) and met
 - Exits never depend on the price oracle or a vote.
 - Fees are capped in code at 0.20%.
 - Beta: each crew can hold up to $25,000.
-- **No external audit yet.** A self-review with all findings, including the ones that can't be changed in deployed
-  contracts, is in [`docs/security-review.md`](docs/security-review.md).
+- **Security review by HEY Research Lab, final commit not retested.** Findings, fixes and tests are in
+  [`docs/review-v2.md`](docs/review-v2.md). The two Medium findings in v1 are published as advisories in this
+  repository's Security tab, with v2 as the patched version.
+- Our own earlier self-review of v1 is in [`docs/security-review.md`](docs/security-review.md).
 
 Found a problem? Please report it privately through this repository's **Security** tab (private vulnerability
 reporting), not in a public issue.

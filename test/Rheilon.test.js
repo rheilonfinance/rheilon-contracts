@@ -35,6 +35,7 @@ async function fund(c) {
   await c.acct.connect(c.ana).deposit(USD(1000));
   await c.acct.connect(c.ben).deposit(USD(1000));
   await c.acct.connect(c.cai).deposit(USD(2000));
+  await time.increase(3601); // past the hold on new shares
 }
 
 async function passAll(c, kind, data) {
@@ -118,6 +119,7 @@ describe("Money in and out", () => {
       await c.acct.connect(signers[Math.floor(rnd() * 3)]).deposit(amt);
       deposited += amt;
     }
+    await time.increase(3601); // past the hold on new shares
     const valueOf = async (s) => (await c.usdg.balanceOf(s)) + ((await c.nvda.balanceOf(s)) * USD(200)) / ONE(1);
     const start = {};
     for (const s of signers) start[s.address] = await valueOf(s);
@@ -290,18 +292,19 @@ describe("Open crews", () => {
   it("anyone can join while seats are free, paying a 0.20% join fee; then it's full", async () => {
     const c = await deploy({ open: true, seats: 5, minJoin: USD(50) });
     await fund(c);
-    await expect(c.acct.connect(c.dee).join(USD(49))).to.be.revertedWithCustomError(c.acct, "BelowMinimum");
-    await c.acct.connect(c.dee).join(USD(1000));
+    await expect(c.acct.connect(c.dee).join(USD(49), await c.acct.readyHash())).to.be.revertedWithCustomError(c.acct, "BelowMinimum");
+    await c.acct.connect(c.dee).join(USD(1000), await c.acct.readyHash());
     expect(await c.usdg.balanceOf(c.treasury)).to.equal(USD(2));
     expect(await c.acct.accountValue()).to.equal(USD(4998));
-    await c.acct.connect(c.outsider).join(USD(100));
-    expect(await c.acct.seatsLeft()).to.equal(0n);
-    await expect(c.acct.connect(c.rest[0]).join(USD(100))).to.be.revertedWithCustomError(c.acct, "Full");
+    await c.acct.connect(c.outsider).join(USD(100), await c.acct.readyHash());
+    expect((await c.acct.members()).length).to.equal(Number(await c.acct.seats()));
+    await expect(c.acct.connect(c.rest[0]).join(USD(100), await c.acct.readyHash())).to.be.revertedWithCustomError(c.acct, "Full");
     // leaving frees a seat, and leaving is free
     const t0 = await c.usdg.balanceOf(c.treasury);
+    await time.increase(3601); // past the hold on new shares
     await c.acct.connect(c.dee).leave();
     expect(await c.usdg.balanceOf(c.treasury)).to.equal(t0);
-    await c.acct.connect(c.rest[0]).join(USD(100));
+    await c.acct.connect(c.rest[0]).join(USD(100), await c.acct.readyHash());
   });
 
   it("open crews must vote by shares", async () => {
@@ -311,20 +314,21 @@ describe("Open crews", () => {
 
   it("private crews can't be joined directly", async () => {
     const c = await deploy();
-    await expect(c.acct.connect(c.dee).join(USD(100))).to.be.revertedWithCustomError(c.acct, "Closed");
+    await expect(c.acct.connect(c.dee).join(USD(100), await c.acct.readyHash())).to.be.revertedWithCustomError(c.acct, "Closed");
   });
 
   it("newcomers vote only after 3 days and don't count until then", async () => {
     const c = await deploy({ open: true, seats: 5 });
     await fund(c);
-    await c.acct.connect(c.dee).join(USD(500));
+    await c.acct.connect(c.dee).join(USD(500), await c.acct.readyHash());
     await expect(c.acct.connect(c.dee).propose(Kind.AddMember, addr(c.outsider.address), "")).to.be.revertedWithCustomError(c.acct, "NotMember");
     await c.acct.connect(c.ana).propose(Kind.Trade, trade(await c.usdg.getAddress(), await c.nvda.getAddress(), USD(100), 0), "");
     await expect(c.acct.connect(c.dee).approve(0)).to.be.revertedWithCustomError(c.acct, "NotMember");
-    expect(await c.acct.voterCount()).to.equal(3n); // dee doesn't raise the bar either
+    expect(await c.acct.canVote(c.dee)).to.equal(false); // dee doesn't raise the bar either
     await c.acct.connect(c.ben).approve(0);
     await c.acct.connect(c.cai).approve(0);
-    await c.acct.connect(c.ana).execute(0); // every current voter signed: runs now
+    // every current voter signed, but dee can't sign yet: not unanimous, so the cool-off applies (review finding)
+    await expect(c.acct.connect(c.ana).execute(0)).to.be.revertedWithCustomError(c.acct, "CoolOffRunning");
     await time.increase(3 * 86400);
     expect(await c.acct.canVote(c.dee)).to.equal(true);
   });
@@ -333,7 +337,7 @@ describe("Open crews", () => {
     const c = await deploy({ open: true, seats: 10, minJoin: USD(10) });
     await fund(c);
     const swarm = c.rest.slice(0, 7);
-    for (const w of swarm) await c.acct.connect(w).join(USD(10));
+    for (const w of swarm) await c.acct.connect(w).join(USD(10), await c.acct.readyHash());
     // right after joining they can't do anything
     await expect(c.acct.connect(swarm[0]).propose(Kind.Trade, trade(await c.usdg.getAddress(), await c.nvda.getAddress(), USD(100), 0), "")).to.be.revertedWithCustomError(c.acct, "NotMember");
     await time.increase(3 * 86400);
@@ -356,7 +360,7 @@ describe("Open crews", () => {
   it("votes by shares in an open crew: a big newcomer still waits 3 days", async () => {
     const c = await deploy({ open: true, seats: 5, mode: Mode.Shares });
     await fund(c);
-    await c.acct.connect(c.dee).join(USD(20000)); // would be ~83% of shares
+    await c.acct.connect(c.dee).join(USD(20000), await c.acct.readyHash()); // would be ~83% of shares
     await c.acct.connect(c.ana).propose(Kind.Trade, trade(await c.usdg.getAddress(), await c.nvda.getAddress(), USD(100), 0), "");
     const [yes, needed] = await c.acct.tally(0);
     expect(yes).to.be.lessThan(needed); // ana alone: 25% of voting shares, dee not counted yet

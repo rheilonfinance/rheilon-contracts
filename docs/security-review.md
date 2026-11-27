@@ -1,5 +1,8 @@
 # Security review, November 2026
 
+> This is our own review of v1. The independent review that followed, by HEY Research Lab, and the v2 fixes are in
+> [`review-v2.md`](review-v2.md).
+
 Self-review by the authors of the contracts. Not an independent audit. The public version lives at
 https://rheilon.com/docs/review (same findings)..
 

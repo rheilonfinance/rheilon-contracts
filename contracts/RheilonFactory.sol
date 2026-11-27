@@ -3,11 +3,15 @@ pragma solidity 0.8.24;
 
 import {RheilonAccount} from "./RheilonAccount.sol";
 import {RheilonRegistry} from "./RheilonRegistry.sol";
+import {RheilonAccountDeployer} from "./RheilonAccountDeployer.sol";
 
 /// @title RheilonFactory
 /// @notice Opens a shared account for a crew. No owner, no fees to create. The caller is always the first member.
 contract RheilonFactory {
     RheilonRegistry public immutable registry;
+    /// @notice Holds the account code (kept apart so this contract stays under the size limit). Created here, and it
+    ///         only answers to this factory.
+    RheilonAccountDeployer public immutable deployer;
     address[] public allAccounts;
     mapping(address => address[]) internal _accountsOf;
 
@@ -15,6 +19,7 @@ contract RheilonFactory {
 
     constructor(RheilonRegistry registry_) {
         registry = registry_;
+        deployer = new RheilonAccountDeployer();
     }
 
     /// @param open    true = anyone can join while seats are free; false = members join only by vote
@@ -33,7 +38,7 @@ contract RheilonFactory {
         for (uint256 i; i < otherMembers.length; ++i) {
             members[i + 1] = otherMembers[i];
         }
-        account = address(new RheilonAccount(registry, name, members, RheilonAccount.Config(voteMode, open, seats, minJoin)));
+        account = deployer.deploy(registry, name, members, RheilonAccount.Config(voteMode, open, seats, minJoin));
         allAccounts.push(account);
         for (uint256 i; i < members.length; ++i) {
             _accountsOf[members[i]].push(account);

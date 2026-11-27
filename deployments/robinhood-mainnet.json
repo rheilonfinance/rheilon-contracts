@@ -81,5 +81,16 @@
     "verified": "2026-11-19: all five contracts verified, exact match, on Blockscout and Sourcify",
     "deployer": "0x64438e23582a85e5f764cdd28aec4099bc7c7604",
     "deployTx": "0xd3cd6ad68548aaf6752ec7801c20fa7a75b5177a20a6cd1862611644b1f04832"
+  },
+  "deployedV2": {
+    "factory": "0xAfb187494ebb15aD8CC51A1e350747AB8021Fa41",
+    "accountDeployer": "0xD392e27AB8C48aAeeb052F4d50740ccF2701b6BE",
+    "reuses": "registry, oracle, adapter and treasury from v1 (the factory takes the v1 registry)",
+    "compiler": "0.8.24+commit.e11b9ed9, optimizer 200 runs, evmVersion cancun, source verification/v2/RheilonFactory.flat.sol",
+    "checkedOnChain": "2026-11-27: registry() is the v1 registry, deployer().factory() is the factory; code of both matches contracts/ apart from immutables and metadata hashes",
+    "verified": "2026-11-27: factory on Blockscout (partial match: metadata only) and Sourcify; deployer on Sourcify",
+    "deployer": "0x64438e23582a85e5f764cdd28aec4099bc7c7604",
+    "deployTx": "0x2a2bf2d8a354ef49c467de954451adac4452c77836745045d9f638431a8f05a1",
+    "block": 124184026
   }
 }

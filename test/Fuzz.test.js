@@ -85,6 +85,12 @@ function expectNoLoss(before, after, except) {
   }
 }
 
+// Exits respect the hold on new shares: wait until this member's latest deposit is free.
+async function freeUp(c, m) {
+  const until = await c.acct.heldUntil(m);
+  if (until > BigInt(await time.latest())) await time.increaseTo(until);
+}
+
 async function run(seed, open, steps) {
   const r = rng(seed);
   const c = await setup(open);
@@ -114,7 +120,7 @@ async function run(seed, open, steps) {
       if (outsiders.length) {
         const o = r.pick(outsiders);
         const amt = USD(1 + r.int(3000));
-        await c.acct.connect(o).join(amt);
+        await c.acct.connect(o).join(amt, await c.acct.readyHash());
         const fee = (await c.usdg.balanceOf(c.treasury)) - t0;
         expect(fee).to.be.at.most((amt * 20n) / 10000n);
         fees.join += fee;
@@ -126,12 +132,14 @@ async function run(seed, open, steps) {
       const s = await c.acct.sharesOf(m);
       if (s > 0n) {
         const part = (s * BigInt(1 + r.int(100))) / 100n;
+        await freeUp(c, m);
         if (part > 0n) await c.acct.connect(m).withdraw(part);
         expectNoLoss(before, await claims(c), m.address);
       }
     } else if (action === 4 && members.length > 1) {
       // leave
       const m = signerOf(r.pick(members));
+      await freeUp(c, m);
       await c.acct.connect(m).leave();
       expect(await c.acct.isMember(m)).to.equal(false);
       expectNoLoss(before, await claims(c), m.address);
@@ -151,8 +159,22 @@ async function run(seed, open, steps) {
           await time.increase(13 * 3600);
           await c.acct.poke(id).catch(() => {});
           await time.increase(13 * 3600);
+          // readiness from before a newcomer gained their vote doesn't count: re-check it (poke) and wait it out again
+          for (let k = 0; k < 4; k++) {
+            const p = await c.acct.getProposal(id);
+            if (p.readyAt !== 0n && p.readyAt < (await c.acct.latestVoteStart())) await c.acct.poke(id).catch(() => {});
+            const ready = (await c.acct.getProposal(id)).readyAt;
+            if (ready === 0n) break;
+            const at = ready + (await c.acct.coolOff());
+            if (at <= BigInt(await time.latest()) && ready >= (await c.acct.latestVoteStart())) break;
+            if (at > BigInt(await time.latest())) await time.increaseTo(at);
+          }
           const [yes, needed] = await c.acct.tally(id);
-          if (yes >= needed) {
+          const fresh = (await c.acct.getProposal(id)).readyAt;
+          if (yes >= needed && (fresh === 0n || fresh < (await c.acct.latestVoteStart()))) {
+            // passes now but its readiness is stale or missing: it waits for a fresh cool-off, it doesn't run
+            await expect(c.acct.connect(voters[0]).execute(id)).to.be.revertedWithCustomError(c.acct, "CoolOffRunning");
+          } else if (yes >= needed) {
             await c.acct.connect(voters[0]).execute(id);
             // the fee is never more than 0.20% of what was traded
             const feeU = (await c.usdg.balanceOf(c.treasury)) - t0;
@@ -186,6 +208,7 @@ async function run(seed, open, steps) {
     const claim = (await claims(c)).get(m);
     const u0 = await c.usdg.balanceOf(s);
     const n0 = await c.nvda.balanceOf(s);
+    await freeUp(c, s);
     await c.acct.connect(s).leave();
     const got = (await c.usdg.balanceOf(s)) - u0 + (await c.oracle.valueInBase(nvdaA, (await c.nvda.balanceOf(s)) - n0));
     expect(got <= claim + 5n, "nobody leaves with more than their share").to.equal(true);
@@ -215,7 +238,8 @@ describe("Known risk: a crew whose shares were all withdrawn", () => {
     const c = await setup(true);
     const [ana, ben] = c.founders;
     for (const f of c.founders) await c.acct.connect(f).deposit(USD(1000));
-    for (const f of c.founders) await c.acct.connect(f).withdraw(await c.acct.sharesOf(f)); // everyone takes everything out
+    await time.increase(3601);
+  for (const f of c.founders) await c.acct.connect(f).withdraw(await c.acct.sharesOf(f)); // everyone takes everything out
     expect(await c.acct.totalShares()).to.equal(0n);
     await c.usdg.connect(c.others[0]).transfer(c.acct, USD(500)); // something is left behind (a gift, here)
     await c.acct.connect(ana).deposit(USD(1)); // ana comes back first: tiny supply, owns the 500 left behind
@@ -246,6 +270,7 @@ describe("Known risk: deposits priced at a stale oracle", () => {
     const before = await claims(c);
     const u0 = await c.usdg.balanceOf(cai);
     await c.acct.connect(cai).deposit(USD(10000));
+    await freeUp(c, cai);
     await c.acct.connect(cai).withdraw(await c.acct.sharesOf(cai));
     const usdgBack = (await c.usdg.balanceOf(cai)) - u0 + USD(5000); // cai's own 5000 came out too
     const nvdaOut = await c.nvda.balanceOf(cai);

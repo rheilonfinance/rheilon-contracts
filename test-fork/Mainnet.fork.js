@@ -22,7 +22,7 @@ describe("Robinhood Chain mainnet fork", function () {
   const symbols = Object.keys(cfg.stocks);
 
   before(async () => {
-    await hre.network.provider.request({ method: "hardhat_reset", params: [{ forking: { jsonRpcUrl: cfg.rpc } }] });
+    await hre.network.provider.request({ method: "hardhat_reset", params: [{ forking: { jsonRpcUrl: process.env.RH_RPC || cfg.rpc } }] });
     [, treasury, ana, ben, cai] = await ethers.getSigners();
     usdg = new ethers.Contract(cfg.USDG, ERC20, ethers.provider);
 
@@ -112,6 +112,9 @@ describe("Robinhood Chain mainnet fork", function () {
   });
 
   it("a member leaves in kind on mainnet state", async () => {
+    const until = await acct.heldUntil(cai.address); // new shares are held for an hour (v2)
+    const now = (await ethers.provider.getBlock("latest")).timestamp;
+    if (until > BigInt(now)) await ethers.provider.send("evm_increaseTime", [Number(until) - now + 1]);
     await acct.connect(cai).leave();
     expect(await acct.isMember(cai.address)).to.equal(false);
     expect(await usdg.balanceOf(cai.address)).to.be.greaterThan(0n);
@@ -121,7 +124,7 @@ describe("Robinhood Chain mainnet fork", function () {
 describe("RheilonLaunch on a mainnet fork", function () {
   this.timeout(600000);
   it("deploys everything in one transaction with only a treasury address, and a crew can trade", async () => {
-    await hre.network.provider.request({ method: "hardhat_reset", params: [{ forking: { jsonRpcUrl: cfg.rpc } }] });
+    await hre.network.provider.request({ method: "hardhat_reset", params: [{ forking: { jsonRpcUrl: process.env.RH_RPC || cfg.rpc } }] });
     const [deployer, treasury, ana, ben] = await ethers.getSigners();
     const Launch = await ethers.getContractFactory("RheilonLaunch");
     console.log(`      launch initcode ${(Launch.bytecode.length - 2) / 2} bytes (limit 49152)`);
