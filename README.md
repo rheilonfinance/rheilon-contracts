@@ -24,7 +24,7 @@ The contracts have no owner, no admin keys, no pause and no upgrade path.
 | `scripts/check-deployed.js` | Compares the code on Robinhood Chain with this repository, v1 and v2 |
 | `deployments/robinhood-mainnet.json` | Deployed addresses and every external address used (tokens, feeds, pools) |
 | `verification/` | The flattened sources and constructor arguments used to verify on the explorer |
-| `docs/` | How a crew works, the HEY Research Lab review and the v1 self-review |
+| `docs/` | How a crew works, the HEY Research Lab review, the v1 self-review, and $HEIL perks |
 
 ## Deployed
 
@@ -78,6 +78,15 @@ deployed every contract above. This is the only $HEIL, anything else using the n
 The image above is the same file as the token image on Pons (`ipfs://bafkreih4ztbmbdilrhfsqv76keffz7qf3qngrnraxwf7golxh2a5s5muyq`,
 stored in the token contract). $HEIL is not a share of any crew and has no claim on fees, profits or votes, and the
 contracts in this repository don't use it. Live price and curve progress are on [rheilon.com/heil](https://rheilon.com/heil).
+
+What $HEIL does on the website, all paid by burning it and none of it touching a crew's money:
+
+- **Holder badge** for wallets holding 500,000 $HEIL.
+- **Feature your crew**: burn $5 of $HEIL to show a crew first in Discover for 7 days.
+- **The Rheilon agent on X**: link your X and burn $10 of $HEIL in total, then mention @rheilonfinance with any
+  question and it replies on X. It can't move money or trade for anyone.
+
+How burns are checked and valued, and what the agent will and won't do: [`docs/heil-perks.md`](docs/heil-perks.md).
 
 ## How a crew works (v2)
 
