@@ -31,6 +31,9 @@ free**, so anyone can try it before burning (up to 150 free answers a day across
 
 Tag it in a reply to any post ("is this true?", "explain this") and it reads that post too.
 
+The same agent is on rheilon.com, under **Agent** in every crew's menu. There the wallet signs one message (free, not a
+transaction) to approve the browser for 7 days, and questions on the site and on X share the same daily allowance.
+
 With your X linked, it also reads your crews from the chain:
 
 - **"how's my crew?"**: value, holdings, open pitches and which ones are waiting for your signature.
