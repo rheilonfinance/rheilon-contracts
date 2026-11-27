@@ -26,7 +26,7 @@ To use it:
 2. Burn **$10 of $HEIL** in total from that wallet, in one go or a bit at a time. Once the total reaches $10 the
    wallet is unlocked for good.
 
-Then each linked, unlocked wallet can ask up to **5 questions a day**.
+Then each linked, unlocked wallet can ask up to **10 questions a day**.
 
 What it does and doesn't do:
 
