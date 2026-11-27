@@ -31,6 +31,14 @@ free**, so anyone can try it before burning (up to 150 free answers a day across
 
 Tag it in a reply to any post ("is this true?", "explain this") and it reads that post too.
 
+With your X linked, it also reads your crews from the chain:
+
+- **"how's my crew?"**: value, holdings, open pitches and which ones are waiting for your signature.
+- **"pitch buy $50 of nvda in day one"**: leaves the pitch as a draft on that crew's Pitches page on rheilon.com. You
+  check it and sign it with your own wallet; nothing happens on chain until you do.
+- **"alerts on"** / **"alerts off"**: it mentions you when a pitch in your crews needs your signature, passes (with when
+  its cool-off ends, so you can leave first if you disagree) or is ready to run. Alerts only go to people who asked.
+
 What it does and doesn't do:
 
 - Answers with Grok (xAI), using web and X search for anything recent. For the 8 Robinhood Stock Tokens it quotes
