@@ -47,7 +47,7 @@ by v1 keep working and every member can withdraw or leave, but rheilon.com no lo
 | UniswapV3Adapter | [`0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181`](https://robinhoodchain.blockscout.com/address/0x2d2bF902Ee7F51769F8B10D8da13DE68aadD6181) |
 | Treasury (receives fees) | [`0xD8939e5c33904aAF7098881F5e052616Ce40b086`](https://robinhoodchain.blockscout.com/address/0xD8939e5c33904aAF7098881F5e052616Ce40b086) |
 
-**v1** (source: [`verification/RheilonLaunch.flat.sol`](verification/RheilonLaunch.flat.sol), or tag `v1`)
+**v1** (source: [`verification/RheilonLaunch.flat.sol`](verification/RheilonLaunch.flat.sol), or the code at [`2e5f174`](https://github.com/rheilonfinance/rheilon-contracts/tree/2e5f174))
 
 | Contract | Address |
 | --- | --- |
